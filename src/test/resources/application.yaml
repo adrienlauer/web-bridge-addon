@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-logging: WARN
+logging: INFO
 
 security:
   users:
@@ -19,6 +19,14 @@ security:
   permissions:
     jedi: ['lightSaber:*', 'academy:*']
     ghost: 'site:haunt'
+  web<oauth>:
+    urls:
+      -
+        pattern: /callback
+        filters: oauthCallback
+      -
+        pattern: /**
+        filters: oauth
   web<basic>:
     urls:
       -
@@ -31,3 +39,10 @@ security:
       -
         pattern: /**
         filters: authc
+  oauth<oauth>:
+    redirect: http://localhost:8080/callback
+    discoveryDocument: https://accounts.google.com/.well-known/openid-configuration
+    scopes: email
+    clientId: ${env.clientId}
+    clientSecret: ${env.clientSecret}
+

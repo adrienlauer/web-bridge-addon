@@ -9,7 +9,6 @@
 package org.seedstack.web;
 
 import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,28 +19,33 @@ import org.seedstack.seed.undertow.LaunchWithUndertow;
 
 @RunWith(JUnit4Runner.class)
 @LaunchWithUndertow
-@ConfigurationProfiles("form")
-public class FormAuthenticationIT {
+@ConfigurationProfiles("basic")
+public class BasicAuthIT {
     @Configuration("web.runtime.baseUrl")
     private String url;
 
     @Test
     public void loginValidUser() throws Exception {
-        String location = given()
-                .formParam("username", "ThePoltergeist")
-                .formParam("password", "bouh")
-                .expect().statusCode(302)
-                .when().post(url + "web-bridge/security/authentication")
-                .header("Location");
-        assertThat(location).endsWith("web-bridge/security/authorizations");
+        given()
+                .auth().basic("ThePoltergeist", "bouh")
+                .expect().statusCode(204)
+                .when().get(url + "web-bridge/security/authentication");
+    }
+
+    @Test
+    public void logoutValidUser() throws Exception {
+        // With basic authentication the user is logged in and out in one client call
+        given()
+                .auth().basic("ThePoltergeist", "bouh")
+                .expect().statusCode(204)
+                .when().delete(url + "web-bridge/security/authentication");
     }
 
     @Test
     public void loginInvalidUser() throws Exception {
         given()
-                .formParam("username", "ThePoltergeist")
-                .formParam("password", "invalid")
+                .auth().basic("InvalidUser", "invalidPassword")
                 .expect().statusCode(401)
-                .when().post(url + "web-bridge/security/authentication");
+                .when().get(url + "web-bridge/security/authentication");
     }
 }
